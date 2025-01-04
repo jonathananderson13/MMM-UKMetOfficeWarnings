@@ -129,9 +129,25 @@ Module.register("MMM-UKMetOfficeWarnings", {
       const typesMatch = title.match(/of (.+?) affecting/i);
       const types = typesMatch ? typesMatch[1].split(",").map(type => type.trim()) : ["Unknown"];
   
+      function parseDate(dateString) 
+      {
+        const [time, day, month] = dateString.split(" "); // Split the input string
+        const [hours, minutes] = [time.slice(0, 2), time.slice(2)]; // Extract hours and minutes
+            
+        // Parse the date string
+        const parsedDate = `${day} ${month} ${hours}:${minutes}`;
+      
+        return parsedDate;
+      }
+
       // Parse description for valid period
       const validPeriodMatch = description.match(/valid from (.+?) to (.+)/i);
-      const validPeriod = validPeriodMatch ? `${validPeriodMatch[1]} - ${validPeriodMatch[2]}` : "Unknown Period";
+      
+      // Convert date to
+      const starDate = parseDate(validPeriodMatch[1]);
+      const endDate = parseDate(validPeriodMatch[2]);
+
+      const validPeriod = validPeriodMatch ? `${starDate} - ${endDate}` : "Unknown Period";
   
       warnings.push({
         level: level,
