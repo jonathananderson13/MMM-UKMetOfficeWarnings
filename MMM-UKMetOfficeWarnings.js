@@ -41,12 +41,26 @@ Module.register("MMM-UKMetOfficeWarnings", {
         .join(" ");
     };
 
+    const toWarningColor = (warningType) => {
+      if (warningType == "amber")
+      {
+        return "orange";
+      }
+      else
+      {
+        return warningType;
+      }
+    };
+
     this.warnings.forEach((warning) => {
       const warningDiv = document.createElement("div");
       warningDiv.className = "warning";
 
+      const warningColor = toWarningColor(warning.level.toLowerCase());
+
       const icon = document.createElement("i");
-      icon.className = `fa fa-triangle-exclamation ${warning.level.toLowerCase()}`;
+      icon.className = `fa fa-triangle-exclamation`;
+      icon.style = `color:${warningColor}`;
 
       // Format warning types to camel case
       const formattedTypes = toCamelCase(warning.types.join(" & "));
