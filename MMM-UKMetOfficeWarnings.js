@@ -49,7 +49,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
       warningDiv.appendChild(text);
       wrapper.appendChild(warningDiv);
     });
-
+console.log(2)
     return wrapper;
   },
 
