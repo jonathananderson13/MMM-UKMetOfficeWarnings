@@ -65,33 +65,60 @@ Module.register("MMM-UKMetOfficeWarnings", {
   },
 
   processWarnings: function (data) {
+    console.log(data);
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(data, "text/xml");
     const items = xmlDoc.getElementsByTagName("item");
-
+  
     const warnings = [];
+    console.log("Processing warnings data...");
+  
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const title = item.getElementsByTagName("title")[0].textContent;
-      const pubDate = item.getElementsByTagName("pubDate")[0].textContent;
-
+  
+      // Extract title
+      const titleElement = item.getElementsByTagName("title")[0];
+      const title = titleElement ? titleElement.textContent : null;
+  
+      if (!title) {
+        console.warn(`Warning: <title> tag is missing or undefined for item ${i}`);
+        continue; // Skip this item if title is missing
+      }
+  
+      // Extract description
+      const descriptionElement = item.getElementsByTagName("description")[0];
+      const description = descriptionElement ? descriptionElement.textContent : "No description available";
+  
+      // Extract enclosure (image URL)
+      const enclosureElement = item.getElementsByTagName("enclosure")[0];
+      const imageUrl = enclosureElement ? enclosureElement.getAttribute("url") : null;
+  
+      // Extract link
+      const linkElement = item.getElementsByTagName("link")[0];
+      const link = linkElement ? linkElement.textContent : "#";
+  
+      // Parse title for warning type and weather conditions
       const levelMatch = title.match(/^(Yellow|Amber|Red)/i);
       const level = levelMatch ? levelMatch[0] : "Unknown";
-
+  
       const typesMatch = title.match(/of (.+?) affecting/i);
       const types = typesMatch ? typesMatch[1].split(",").map(type => type.trim()) : ["Unknown"];
-
-      const validPeriodMatch = pubDate.match(/(\w{3} \d{2}:\d{2} - \w{3} \d{2}:\d{2})/i);
-      const validPeriod = validPeriodMatch ? validPeriodMatch[0] : "Unknown Period";
-
+  
+      // Parse description for valid period
+      const validPeriodMatch = description.match(/valid from (.+?) to (.+)/i);
+      const validPeriod = validPeriodMatch ? `${validPeriodMatch[1]} - ${validPeriodMatch[2]}` : "Unknown Period";
+  
       warnings.push({
         level: level,
         types: types,
         validPeriod: validPeriod,
+        imageUrl: imageUrl,
+        link: link,
       });
     }
-
+  
+    console.log("Parsed warnings:", warnings);
     this.warnings = warnings;
     this.updateDom();
-  },
+  }  
 });
