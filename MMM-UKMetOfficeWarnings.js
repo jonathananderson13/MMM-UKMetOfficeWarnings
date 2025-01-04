@@ -8,7 +8,6 @@ Module.register("MMM-UKMetOfficeWarnings", {
 
   start: function () {
     this.warnings = null;
-    this.moduleHeader = this.config.header;
     const fullUrl = `${this.config.feedUrl}${this.config.region}`;
     this.sendSocketNotification("FETCH_WARNINGS", fullUrl);
     this.scheduleUpdate(fullUrl);
@@ -20,11 +19,6 @@ Module.register("MMM-UKMetOfficeWarnings", {
 
   getDom: function () {
     const wrapper = document.createElement("div");
-
-    const header = document.createElement("div");
-    header.className = "module-header";
-    header.innerHTML = this.moduleHeader;
-    wrapper.appendChild(header);
 
     if (!this.warnings) {
       const loading = document.createElement("div");
@@ -99,7 +93,6 @@ Module.register("MMM-UKMetOfficeWarnings", {
     }
 
     this.warnings = warnings;
-    this.moduleHeader = xmlDoc.getElementsByTagName("title")[0]?.textContent || this.config.header;
     this.updateDom();
   },
 });
