@@ -135,7 +135,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
         const [hours, minutes] = [time.slice(0, 2), time.slice(2)]; // Extract hours and minutes
             
         // Parse the date string
-        const parsedDate = `${day} ${month} ${hours}:${minutes}`;
+        const parsedDate = `${day} ${hours}:${minutes}`;
       
         return parsedDate;
       }
