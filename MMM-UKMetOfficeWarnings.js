@@ -14,7 +14,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
   },
 
   getStyles: function () {
-    return ["css/MMM-UKMetOfficeWarnings.css", "font-awesome.css"];
+    return ["MMM-UKMetOfficeWarnings.css", "font-awesome.css"];
   },
 
   getDom: function () {
@@ -38,44 +38,14 @@ Module.register("MMM-UKMetOfficeWarnings", {
       const warningDiv = document.createElement("div");
       warningDiv.className = "warning";
 
-      // Add color-coded icon
       const icon = document.createElement("i");
-      icon.className = `fa fa-triangle-exclamation icon ${warning.level.toLowerCase()}`;
-      warningDiv.appendChild(icon);
-
-      // Format types to camel case
-      const formattedTypes = warning.types
-        .map((type) => type.charAt(0).toUpperCase() + type.slice(1).toLowerCase())
-        .join(" & ");
-
-      // Format date
-      const formatDateRange = (validFrom, validTo) => {
-        const parseDate = (dateString) => {
-          const [time, day, month, year] = dateString.split(" ");
-          const [hour, minute] = [time.slice(0, 2), time.slice(2)];
-          return new Date(`${month} ${day}, ${year} ${hour}:${minute}`);
-        };
-
-        const formatDate = (date) => {
-          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-          const day = days[date.getUTCDay()];
-          const hours = String(date.getUTCHours()).padStart(2, "0");
-          const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-          return `${day} ${hours}:${minutes}`;
-        };
-
-        const startDate = parseDate(validFrom);
-        const endDate = parseDate(validTo);
-
-        return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-      };
-
-      const validPeriodFormatted = formatDateRange(warning.validPeriodStart, warning.validPeriodEnd);
+      icon.className = `fa fa-triangle-exclamation ${warning.level.toLowerCase()}`;
 
       const text = document.createElement("span");
       text.className = "warning-text";
-      text.innerHTML = `${formattedTypes} (${validPeriodFormatted})`;
+      text.innerHTML = `${warning.types.join(" & ")} (${warning.validPeriod})`;
 
+      warningDiv.appendChild(icon);
       warningDiv.appendChild(text);
       wrapper.appendChild(warningDiv);
     });
@@ -90,7 +60,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
   },
 
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "FETCH_WARNINGS") {
+    if (notification === "WARNINGS_DATA") {
       this.processWarnings(payload);
     }
   },
@@ -98,60 +68,57 @@ Module.register("MMM-UKMetOfficeWarnings", {
   processWarnings: function (data) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(data, "text/xml");
-
-    // Fallback for title/header
-    const channelTitleElement = xmlDoc.getElementsByTagName("title")[0];
-    this.data.header = channelTitleElement ? channelTitleElement.textContent : this.config.header;
-
     const items = xmlDoc.getElementsByTagName("item");
+  
     const warnings = [];
-
+    console.log("Processing warnings data...");
+  
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-
-      // Safely get title
+  
+      // Extract title
       const titleElement = item.getElementsByTagName("title")[0];
-      if (!titleElement) {
-        console.warn(`Skipping item ${i} due to missing <title>`);
+      const title = titleElement ? titleElement.textContent : null;
+  
+      if (!title) {
+        console.warn(`Warning: <title> tag is missing or undefined for item ${i}`);
         continue; // Skip this item if title is missing
       }
-      const title = titleElement.textContent;
-
-      // Safely get description
+  
+      // Extract description
       const descriptionElement = item.getElementsByTagName("description")[0];
       const description = descriptionElement ? descriptionElement.textContent : "No description available";
-
-      // Safely get enclosure (image URL)
+  
+      // Extract enclosure (image URL)
       const enclosureElement = item.getElementsByTagName("enclosure")[0];
       const imageUrl = enclosureElement ? enclosureElement.getAttribute("url") : null;
-
-      // Safely get link
+  
+      // Extract link
       const linkElement = item.getElementsByTagName("link")[0];
       const link = linkElement ? linkElement.textContent : "#";
-
+  
       // Parse title for warning type and weather conditions
       const levelMatch = title.match(/^(Yellow|Amber|Red)/i);
       const level = levelMatch ? levelMatch[0] : "Unknown";
-
+  
       const typesMatch = title.match(/of (.+?) affecting/i);
       const types = typesMatch ? typesMatch[1].split(",").map(type => type.trim()) : ["Unknown"];
-
+  
       // Parse description for valid period
       const validPeriodMatch = description.match(/valid from (.+?) to (.+)/i);
-      const validFrom = validPeriodMatch ? validPeriodMatch[1] : "";
-      const validTo = validPeriodMatch ? validPeriodMatch[2] : "";
-
+      const validPeriod = validPeriodMatch ? `${validPeriodMatch[1]} - ${validPeriodMatch[2]}` : "Unknown Period";
+  
       warnings.push({
         level: level,
         types: types,
-        validPeriodStart: validFrom,
-        validPeriodEnd: validTo,
+        validPeriod: validPeriod,
         imageUrl: imageUrl,
         link: link,
       });
     }
-
+  
+    console.log("Parsed warnings:", warnings);
     this.warnings = warnings;
     this.updateDom();
-  },
+  }
 });
