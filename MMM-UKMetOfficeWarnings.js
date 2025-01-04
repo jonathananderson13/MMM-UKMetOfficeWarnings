@@ -4,7 +4,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
     region: "default-region", // Region code appended to the URL
     updateInterval: 60 * 60 * 1000, // 1 hour
     header: "Met Office Warnings",
-  },
+  }, 
 
   start: function () {
     this.warnings = null;
@@ -34,6 +34,13 @@ Module.register("MMM-UKMetOfficeWarnings", {
       return wrapper;
     }
 
+    const toCamelCase = (message) => {
+      return message
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ");
+    };
+
     this.warnings.forEach((warning) => {
       const warningDiv = document.createElement("div");
       warningDiv.className = "warning";
@@ -41,9 +48,13 @@ Module.register("MMM-UKMetOfficeWarnings", {
       const icon = document.createElement("i");
       icon.className = `fa fa-triangle-exclamation ${warning.level.toLowerCase()}`;
 
+      // Format warning types to camel case
+      const formattedTypes = toCamelCase(warning.types.join(" & "));
+
+
       const text = document.createElement("span");
       text.className = "warning-text";
-      text.innerHTML = `${warning.types.join(" & ")} (${warning.validPeriod})`;
+      text.innerHTML = `${formattedTypes} (${warning.validPeriod})`;
 
       warningDiv.appendChild(icon);
       warningDiv.appendChild(text);
