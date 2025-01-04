@@ -49,7 +49,6 @@ Module.register("MMM-UKMetOfficeWarnings", {
       warningDiv.appendChild(text);
       wrapper.appendChild(warningDiv);
     });
-
     return wrapper;
   },
 
