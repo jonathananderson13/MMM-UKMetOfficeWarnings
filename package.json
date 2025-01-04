@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node node_helper.js"
   },
-  "author": "Your Name",
+  "author": "Jon Anderson",
   "license": "MIT",
   "dependencies": {
     "node-fetch": "^2.6.7"
