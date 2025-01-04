@@ -14,7 +14,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
   },
 
   getStyles: function () {
-    return ["MMM-UKMetOfficeWarnings.css", "font-awesome.css"];
+    return ["font-awesome.css"];
   },
 
   getDom: function () {
