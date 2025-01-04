@@ -3,7 +3,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
     feedUrl: "https://www.metoffice.gov.uk/public/data/PWSCache/WarningsRSS/Region/", // Base URL for warnings
     region: "default-region", // Region code appended to the URL
     updateInterval: 60 * 60 * 1000, // 1 hour
-    header: "Met Office Warnings",
+    title: "Met Office Warnings",
   },
 
   start: function () {
