@@ -5,23 +5,28 @@
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
   margin-right: 10px;
+  font-size: 20px;
 }
 
-.icon.wind {
-  background-color: yellow;
+.icon.yellow {
+  color: yellow;
 }
 
-.icon.rain {
-  background-color: blue;
+.icon.amber {
+  color: orange;
 }
 
-.icon.snow {
-  background-color: white;
+.icon.red {
+  color: red;
 }
 
 .warning-text {
   font-size: 14px;
+}
+
+.module-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
