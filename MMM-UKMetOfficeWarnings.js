@@ -54,7 +54,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
 
       const text = document.createElement("span");
       text.className = "warning-text";
-      text.innerHTML = `${formattedTypes} (${warning.validPeriod})`;
+      text.innerHTML = `&nbsp;&nbsp;${formattedTypes} (${warning.validPeriod})`;
 
       warningDiv.appendChild(icon);
       warningDiv.appendChild(text);
