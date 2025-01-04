@@ -14,7 +14,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
   },
 
   getStyles: function () {
-    return ["MMM-UKMetOfficeWarnings.css", "font-awesome.css"];
+    return ["css/MMM-UKMetOfficeWarnings.css", "font-awesome.css"];
   },
 
   getDom: function () {
@@ -38,14 +38,25 @@ Module.register("MMM-UKMetOfficeWarnings", {
       const warningDiv = document.createElement("div");
       warningDiv.className = "warning";
 
+      // Add color-coded icon
       const icon = document.createElement("i");
       icon.className = `fa fa-triangle-exclamation ${warning.level.toLowerCase()}`;
+      warningDiv.appendChild(icon);
+
+      // Format types to camel case
+      const formattedTypes = warning.types
+        .map((type) => type.charAt(0).toUpperCase() + type.slice(1).toLowerCase())
+        .join(" & ");
+
+      // Format date
+      const validPeriodFormatted = warning.validPeriod
+        .replace(/(\d{2})(\d{2})/g, "$1:$2") // Insert colon for time
+        .replace(/(\w{3})(\s\d{2}:\d{2})\s(.+?)\s(\w{3})/g, "$1$2 - $4"); // Format day and time
 
       const text = document.createElement("span");
       text.className = "warning-text";
-      text.innerHTML = `${warning.types.join(" & ")} (${warning.validPeriod})`;
+      text.innerHTML = `${formattedTypes} (${validPeriodFormatted})`;
 
-      warningDiv.appendChild(icon);
       warningDiv.appendChild(text);
       wrapper.appendChild(warningDiv);
     });
@@ -60,7 +71,7 @@ Module.register("MMM-UKMetOfficeWarnings", {
   },
 
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "WARNINGS_DATA") {
+    if (notification === "FETCH_WARNINGS") {
       this.processWarnings(payload);
     }
   },
@@ -68,27 +79,54 @@ Module.register("MMM-UKMetOfficeWarnings", {
   processWarnings: function (data) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(data, "text/xml");
-    const items = xmlDoc.getElementsByTagName("item");
 
+    // Fallback for title/header
+    const channelTitleElement = xmlDoc.getElementsByTagName("title")[0];
+    this.data.header = channelTitleElement ? channelTitleElement.textContent : this.config.header;
+
+    const items = xmlDoc.getElementsByTagName("item");
     const warnings = [];
+
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const title = item.getElementsByTagName("title")[0].textContent;
-      const pubDate = item.getElementsByTagName("pubDate")[0].textContent;
 
+      // Safely get title
+      const titleElement = item.getElementsByTagName("title")[0];
+      if (!titleElement) {
+        console.warn(`Skipping item ${i} due to missing <title>`);
+        continue; // Skip this item if title is missing
+      }
+      const title = titleElement.textContent;
+
+      // Safely get description
+      const descriptionElement = item.getElementsByTagName("description")[0];
+      const description = descriptionElement ? descriptionElement.textContent : "No description available";
+
+      // Safely get enclosure (image URL)
+      const enclosureElement = item.getElementsByTagName("enclosure")[0];
+      const imageUrl = enclosureElement ? enclosureElement.getAttribute("url") : null;
+
+      // Safely get link
+      const linkElement = item.getElementsByTagName("link")[0];
+      const link = linkElement ? linkElement.textContent : "#";
+
+      // Parse title for warning type and weather conditions
       const levelMatch = title.match(/^(Yellow|Amber|Red)/i);
       const level = levelMatch ? levelMatch[0] : "Unknown";
 
       const typesMatch = title.match(/of (.+?) affecting/i);
       const types = typesMatch ? typesMatch[1].split(",").map(type => type.trim()) : ["Unknown"];
 
-      const validPeriodMatch = pubDate.match(/(\w{3} \d{2}:\d{2} - \w{3} \d{2}:\d{2})/i);
-      const validPeriod = validPeriodMatch ? validPeriodMatch[0] : "Unknown Period";
+      // Parse description for valid period
+      const validPeriodMatch = description.match(/valid from (.+?) to (.+)/i);
+      const validPeriod = validPeriodMatch ? `${validPeriodMatch[1]} - ${validPeriodMatch[2]}` : "Unknown Period";
 
       warnings.push({
         level: level,
         types: types,
         validPeriod: validPeriod,
+        imageUrl: imageUrl,
+        link: link,
       });
     }
 

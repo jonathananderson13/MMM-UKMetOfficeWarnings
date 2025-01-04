@@ -1,5 +1,5 @@
 {
-  "name": "MMM-UKMetOfficeWarnings",
+  "name": "mmm-ukmetofficewarnings",
   "version": "1.0.0",
   "description": "MagicMirror module for displaying UK Met Office warnings.",
   "main": "MMM-UKMetOfficeWarnings.js",
